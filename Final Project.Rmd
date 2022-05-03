@@ -1,0 +1,93 @@
+---
+title: "IS4300 Final Project"
+author: "Bonnie Ritchie"
+date: "5/3/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+# Required Packages:
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org") 
+if(!require(dslabs)) install.packages("tidyverse", repos = "http://cran.us.r-project.org") 
+if(!require(ggplot2)) install.packages("tidyverse", repos = "http://cran.us.r-project.org") 
+```
+
+```{r,echo=FALSE, include=FALSE}
+# Get data set from github
+urlfile <- "https://raw.githubusercontent.com/bkr1999/IS4300-Final-Project/main/Final%20Project%20Dataset.csv"
+statistics <- read_csv(url(urlfile))
+mdata <- as.data.frame(statistics)
+data <- mdata %>% select(lfp,k5,k618,age,wc,hc,lwg,inc)
+names(data) <- c("LaborForceParticipant","KidsUnder5", "Kids_6to18", "Age","Wife_College","Husband_College","Expected_Wage_Rate","Income")
+data$LaborForceParticipant <- as.factor(data$LaborForceParticipant)
+```
+
+## Introduction
+The data set that we are going to look at is titled "U.S. Women's Labor Force Participation". The data set can be found on GitHub. This data set includes 753 observations with eight variables. The variable *lfp* which was changed to *LaborForceParticipant* is a factor variable on whether the woman is a participant in the labor force. *k5* was changed to *KidsUnder5* and is how many children five years or younger the woman has. *k618* was changed to *Kids_6to18* and is how many children ages 6 to 18 the woman has. Then there's *age* and the variables *Wife_College* and *Husband_College* which detail if the wife and husband attended college. The final two variables are *Expected_Wage_Rate* which is a log expected wage rate: for women participating in the labor force, it is their actual wage rate, if they are not a participant, then it is an imputed value. The head of the data set can be seen below.
+
+```{r,echo=FALSE}
+# Show the head of the data set
+head(data)
+```
+
+## Visualizations
+The first visualization of this data set shown below is a scatter plot of the income versus the age colored by whether or not the woman is a participant in the labor force. As one can see from the visualization, there is a relatively even spread of labor force participants and non-participants. 
+
+
+```{r,echo=FALSE}
+# First scatterplot of the data
+plot <- data %>% ggplot()
+plot + geom_point(aes(Income,Age,col=LaborForceParticipant)) + labs(title = "Income vs. Age Scatterplot")
+
+```
+
+The next visualization gives a broad overview of how women who participate in the workforce tend to have less children. This bar plot detailing the number of kids under five each woman has colored by whether they are a labor force participant or not. One can see that more than fifty percent of those with zero children under five years old are labor force participants. Then as you look at the bars for one, two, and three kids, the majority becomes non-labor force participants. 
+
+```{r,echo=FALSE}
+# Bar plot visualization of the data
+plot + geom_bar(aes(KidsUnder5,fill=LaborForceParticipant)) + labs(title = "Barplot of Kids Under 5 Years Old")
+```
+
+## Analysis
+The first test conducted on this data set was a two sample t-test. The data was split by whether the wife went to college or not and the t-test conducted to see if the means are statistically different. After filtering the data, the mean expected wage rate for women who did and didn't college was as follows:
+
+```{r,echo=FALSE}
+# Separating the data based on if the wife attended college and showing the mean expected wage rates
+x <- data %>% filter(Wife_College == "no") %>% select(Expected_Wage_Rate)
+y <- data %>% filter(Wife_College == "yes")%>% select(Expected_Wage_Rate)
+mean(y$Expected_Wage_Rate)
+mean(x$Expected_Wage_Rate)
+
+
+```
+Then when you run the t-test, the p-value it returns is 1.346e-14. Since this is less than .05, we can reject the null hypothesis that the means for expected wage rate of women who did and did not attend college are the same. 
+```{r,echo=FALSE}
+# T-test for mean expected wage rates
+t.test(x$Expected_Wage_Rate,y$Expected_Wage_Rate)
+
+```
+
+The next test to run is whether the mean income for households where the husband attended college is the same as the mean income for households where the husband did not attend college. The data was split again into a set where *Husband_College* equals "yes" and a set where *Husband_College* equals "no". The mean income amount for households whose husband did and did not attend college are as follows:
+
+```{r,echo=FALSE}
+# Seperating the data depending on whether the husband went to college and showing mean income
+x <- data %>% filter(Husband_College == "no") %>% select(Income)
+y <- data %>% filter(Husband_College == "yes")%>% select(Income)
+mean(y$Income)
+mean(x$Income)
+```
+
+The t-test for this comes out to be 2.2e-16 and since it is less than .05, we can reject the null hypothesis that the mean income for households whose husband attended college and the mean income for households whose husband did not attend college are statistically different. 
+```{r,echo=FALSE}
+# T-test for the income variables
+t.test(x$Income,y$Income)
+```
+## Conclusion
+Based on the findings of the t-tests done on this data, one can see that attending college, whether that be the wife or husband, does significantly affect the income and wage rate. The difference between mean expected wage rates of women who did and did not attend college is .406 while the difference in income of men who did and did not attend college is 8.602. Hopefully, one can see through this data set how helpful a college education can be. 
